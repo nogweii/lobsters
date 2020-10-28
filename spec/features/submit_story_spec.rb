@@ -95,7 +95,14 @@ RSpec.feature "Submitting Stories", type: :feature do
   end
 
   scenario "resubmitting a recent link deleted by a moderator" do
-    s = create(:story, is_expired: true, is_moderated: true, created_at: 1.day.ago)
+    #s = create(:story, is_expired: true, is_moderated: true, created_at: 1.day.ago)
+    s = create(:story, created_at: 1.day.ago)
+    s.is_expired = true
+    s.editor = user
+    s.moderation_reason = Faker::Lorem.sentence
+    s.save!
+    binding.pry
+
     expect {
       visit "/stories/new"
       fill_in "URL", with: s.url
@@ -104,7 +111,7 @@ RSpec.feature "Submitting Stories", type: :feature do
       click_button "Submit"
 
       # TODO: would be nice if this had a specific error message
-      expect(page).to have_content "has already been submitted"
+      expect(page).to have_content "has been moderated because '#{s.moderation_reason}'"
     }.not_to(change { Story.count })
   end
 
